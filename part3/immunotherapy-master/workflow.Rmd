@@ -1,0 +1,119 @@
+---
+title: "Workflow"
+author: "Andrie de Vries"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(DiagrammeR)
+library(dplyr)
+```
+
+## Objective
+
+We want to deploy a TensorFlow model to RStudio Connect that allows some end user code to get a prediction.
+
+
+```{r usage_diagram_1, fig.height=2}
+DiagrammeR("
+  graph TD
+    TF(TensorFlow API) --> U(User)
+    U --> TF
+")
+```
+
+## Complication
+
+However, in reality the TensorFlow model needs the data in a very specific format, and we want the user to provide inputs in a simple format.
+
+To solve this, you can put another API between the user and TensorFlow:
+
+
+```{r usage_diagram_2, fig.height=2}
+DiagrammeR("
+
+  graph TD
+  
+    TF(TensorFlow API) --> API[Plumber API]
+    API --> U(User)
+    U --> API
+    API --> TF
+
+")
+```
+
+## Programming workflow
+
+```{r programmer_worflow, fig.height=1}
+
+DiagrammeR("
+  graph LR
+    TF[Train TensorFlow model] --> TF_API[Publish TensorFlow API]
+    TF_API --> API[Deploy Plumber API]
+")
+```
+
+
+## Workflow
+
+
+```{r full_workflow, fig.height=2}
+edge_relations <- tibble::tribble(
+  ~from, ~to, ~rel, ~comment, ~fontcolor,
+  1, 2, "deploy", NA,        "grey20",
+  3, 4, "deploy", NA,        "grey20",
+  2, 4, NA, "Numeric score", "blue",
+  4, 2, NA, "Input matrix",  "red",
+  4, 5, NA, "Class",         "blue",
+  5, 4, NA, "Peptide",       "red"
+) %>%
+  mutate(
+    id = 1:6
+  )
+
+edges_as_nodes <- tibble::tribble(
+  ~x, ~y, ~label, ~shape,
+  1.7, 2.5, "Peptide", "none",
+  1.7, 1.5, "Input matrix", "none",
+  2.3, 1.5, "Numeric score", "none",
+  2.3, 2.5, "Class", "none"
+) %>% 
+  mutate(
+    color = "transparent",
+    fillcolor = "transparent",
+    fontcolor = "blue",
+    fontsize = 8
+  )
+
+node_df <- tibble::tribble(
+  ~x, ~y, ~label, ~shape,
+  1, 1, "Train TF model", "rectangle",  
+  2, 1, "TensorFlow API", "oval", 
+  1, 2, "R function", "rectangle",
+  2, 2, "Plumber API", "oval", 
+  2, 3, "User code", "oval"
+) %>% 
+  mutate(
+    color = "aliceblue",
+    fillcolor = "aliceblue",
+    fontcolor = "black",
+    fontsize = 10
+  ) %>% 
+  bind_rows(edges_as_nodes) %>% 
+  mutate(
+    id = seq_along(x),
+    x = 2 * x,
+    y = -y,
+    fixedsize = FALSE
+  )
+
+create_graph(
+  nodes_df = node_df,
+  edges_df = edge_relations
+) %>%
+  set_edge_attr_to_display(attr = "rel") %>%
+  # add_global_graph_attrs("inputscale", 0.75, "graph") %>%
+  render_graph()
+```

@@ -1,0 +1,12 @@
+name: immunotherapy_api
+title: Immunotherapy API
+username: alex.gold
+account: alex.gold
+server: colorado.rstudio.com
+hostUrl: https://colorado.rstudio.com/rsc/__api__
+appId: 7295
+bundleId: 40050
+url: https://colorado.rstudio.com/rsc/content/7295/
+when: 1598468216.99496
+asMultiple: FALSE
+asStatic: FALSE

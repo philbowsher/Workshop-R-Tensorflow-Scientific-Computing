@@ -1,0 +1,71 @@
+---
+title: "Immunotherapy Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Introduction
+
+Inspired by the blog post at https://blogs.rstudio.com/tensorflow/posts/2018-01-29-dl-for-cancer-immunotherapy/
+
+## Packages
+
+Packages for sequence logos and peptides
+
+```r
+devtools::install_github("omarwagih/ggseqlogo")
+devtools::install_github("leonjessen/PepTools")
+```
+
+## Analysis
+
+```{r}
+library(keras)
+library(tidyverse)
+library(PepTools)
+```
+
+Download and cache the data
+
+```{r}
+pep_file <- get_file(
+  "ran_peps_netMHCpan40_predicted_A0201_reduced_cleaned_balanced.tsv",
+  origin = "https://git.io/vb3Xa"
+)
+```
+
+Read and display some data
+
+```{r}
+pep_dat <- read_tsv(file = pep_file)
+pep_dat %>% head(5)
+```
+
+Summarize
+
+```{r}
+pep_dat %>%
+  group_by(label_chr, data_type) %>%
+  tally() %>% 
+  arrange(desc(n))
+```
+
+Plot sequence logo
+
+```{r}
+pep_dat %>%
+  filter(label_chr == "SB") %>%
+  pull(peptide) %>%
+  ggseqlogo()
+```
+
+Plot peptide image
+
+```{r}
+pep_dat %>%
+  filter(label_chr == "SB") %>%
+  head(1) %>%
+  pull(peptide) %>%
+  pep_plot_images()
+```
