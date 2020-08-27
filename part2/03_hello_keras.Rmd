@@ -153,7 +153,7 @@ plot_dat %>% select(-contains("feat")) %>% head(3)
 and lastly, we can visualise the confusion matrix like so:
 ```{r conf_mat_vis, fig.align="center", fig.width=10, fig.height=3, echo=FALSE}
 title     = "Classification Performance of Artificial Neural Network"
-sub_title = str_c("Accuracy = ", round(perf$acc, 3) * 100, "%")
+sub_title = str_c("Accuracy = ", round(perf["acc"], 3) * 100, "%")
 x_lab     = "True iris class"
 y_lab     = "Predicted iris class"
 plot_dat %>% ggplot(aes(x = class_num, y = y_pred, colour = Correct)) +

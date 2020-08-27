@@ -2,7 +2,7 @@ library(httr)
 library(purrr)
 library(config)
 
-con <- config::get()
+con <- config::get(file = here::here("part3/immunotherapy-master/plumber/config.yml"))
 
 predict_peptide <- function(peptide,
                             url = file.path(con$rsc_url, con$content_url, "predict")) {

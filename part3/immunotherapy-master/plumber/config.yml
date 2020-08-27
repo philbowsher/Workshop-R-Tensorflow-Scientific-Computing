@@ -1,7 +1,8 @@
 default:
-  solo_url_tensorflow: "http://ec2-18-223-2-143.us-east-2.compute.amazonaws.com/rsconnect/immunotherapy_tf"
-  solo_url_plumber:    "http://ec2-18-223-2-143.us-east-2.compute.amazonaws.com/rsconnect/immunotherapy_api"
+  content_url: "immuno_api"
+  rsc_url: "http://ec2<URL>.us-east-2.compute.amazonaws.com/rsconnect"
+  rsc_api_key: ""
 
 colorado:
-  solo_url_tensorflow: "https://colorado.rstudio.com/rsc/content/2328/"
-  solo_url_plumber:    "https://colorado.rstudio.com/rsc/content/2337/"
+  rsc_url: "https://colorado.rstudio.com/rsc"
+  content_url: "immuno_api"

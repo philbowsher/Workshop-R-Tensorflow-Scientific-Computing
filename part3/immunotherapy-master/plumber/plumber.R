@@ -13,6 +13,11 @@ library(reticulate)
 library(PepTools)
 
 # Get pinned model from RStudio Connect
+con <- config::get(file = here::here("part3/immunotherapy-master/plumber/config.yml"))
+if (!all(c("rsc_url", "rsc_api_key") %in% names(con)) &
+    !grepl("<", con$rsc_url, fixed = TRUE)) {
+  stop("Set rsc_url and rsc_api_key in config.yml before continuing.")
+}
 pins::board_register_rsconnect(
   server = config::get("rsc_url"),
   key = config::get("rsc_api_key")
