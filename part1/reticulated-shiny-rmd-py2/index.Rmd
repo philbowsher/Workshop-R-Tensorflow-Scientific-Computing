@@ -1,0 +1,24 @@
+---
+title: "reticulated shiny rmd"
+runtime: shiny
+output: html_document
+---
+
+This uses Python (via reticulate) to generate some data, and Shiny to serve a pretty, interactive plot of it.
+
+```{r, echo = FALSE}
+library(shiny)
+library(reticulate)
+
+source_python('server.py')
+
+sliderInput("bins", "Number of bins:", min = 1, max = 50, value = 30)
+
+renderPlot({
+  x <- py$data
+  bins <- seq(min(x), max(x), length.out = input$bins + 1)
+
+  # draw the histogram with the specified number of bins
+  hist(x, breaks = bins, col = 'darkgray', border = 'white')
+})
+```

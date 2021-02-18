@@ -1,0 +1,13 @@
+name: reticulated-shiny-rmd
+title: reticulated-shiny-rmd
+username: admin
+account: admin
+server: 192.168.0.111
+hostUrl: http://192.168.0.111:3939/__api__
+appId: 53
+bundleId: 53
+url: http://192.168.0.111:3939/content/53/
+when: 1543245862.28402
+asMultiple: FALSE
+asStatic: FALSE
+additionalFiles: requirements.txt
