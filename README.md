@@ -6,11 +6,11 @@ https://www.phuse.eu/usconnect20-presentations
 
 Paper ML12
 R for Deep Learning with Tensorflow™ with Applications in Cancer Immunotherapy
-https://www.phusewiki.org/docs/2020%20US%20Connect%20Florida/Presentations/ML/Final%20Papers/ML12%20pdf.pdf
+https://github.com/philbowsher/Workshop-R-Tensorflow-Scientific-Computing/raw/master/papers/R%20for%20Deep%20Learning%20with%20Tensorflow%20with%20Applications%20in%20Cancer%20Immunotherapy%20Bowsher.pdf
 
 Paper TT14
 R & Python for Clinical Workflows:
-https://www.phuse.eu/documents/cfp-papers/r-python-for-clinical-workflows-29574.pdf
+https://github.com/philbowsher/Workshop-R-Tensorflow-Scientific-Computing/raw/master/papers/R%20%26amp%3B%20Python%20for%20Clinical%20Workflows%20Bowsher.pdf
 
 Live environment with examples:
 https://rstudio.cloud/project/1011147
