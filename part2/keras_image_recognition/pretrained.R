@@ -5,7 +5,6 @@ library(ggthemes)
 library(withr)
 
 library(keras)
-Sys.setenv(KERAS_IMPLEMENTATION = "keras")
 
 # Load pretrained model from resnet50 and imagenet data
 model <- application_resnet50(weights = 'imagenet')
