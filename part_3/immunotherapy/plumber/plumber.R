@@ -13,7 +13,7 @@ library(reticulate)
 library(PepTools)
 
 # Get pinned model from RStudio Connect
-con <- config::get(file = here::here("~/Workshop-R-Tensorflow-Scientific-Computing/part3/immunotherapy/plumber/config.yml"))
+con <- config::get(file = here::here("~/Workshop-R-Tensorflow-Scientific-Computing/part_3/immunotherapy/plumber/config.yml"))
 if (!all(c("rsc_url", "rsc_api_key") %in% names(con)) &
     !grepl("<", con$rsc_url, fixed = TRUE)) {
   stop("Set rsc_url and rsc_api_key in config.yml before continuing.")
