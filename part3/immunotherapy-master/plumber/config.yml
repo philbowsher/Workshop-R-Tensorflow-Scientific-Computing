@@ -1,8 +1,0 @@
-default:
-  content_url: "immuno_api"
-  rsc_url: "http://ec2<URL>.us-east-2.compute.amazonaws.com/rsconnect"
-  rsc_api_key: ""
-
-colorado:
-  rsc_url: "https://colorado.rstudio.com/rsc"
-  content_url: "immuno_api"
