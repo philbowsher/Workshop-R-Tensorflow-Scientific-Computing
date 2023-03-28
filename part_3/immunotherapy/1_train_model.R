@@ -95,18 +95,19 @@ perf
 
 
 y_pred <- model %>%
-  predict_classes(x_test)
+  predict(x_test) %>% 
+  k_argmax()
 
 y_real <- y_test %>%
   apply(1, function(x) {which(x == 1) - 1 })
 
 peptide_classes <- c("NB", "WB", "SB")
+predicted <- y_pred$numpy()
 results <- tibble(
   measured  = y_real %>% factor(levels = 0:2, labels = peptide_classes),
-  predicted = y_pred %>% factor(levels = 0:2, labels = peptide_classes),
-  Correct = if_else(y_real == y_pred, "yes", "no") %>% factor()
+  predicted = predicted %>% factor(levels = 0:2, labels = peptide_classes),
+  Correct = if_else(y_real == predicted, "yes", "no") %>% factor()
 )
-
 
 results %>%
   ggplot(aes(colour = Correct)) +
