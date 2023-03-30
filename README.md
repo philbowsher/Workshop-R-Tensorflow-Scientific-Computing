@@ -30,7 +30,11 @@ https://solutions.rstudio.com/examples/tensorflow/immunotherapy/
 Immunotherapy workflow for part 3:
 
 pin the model
+
 update config.yml to point to the Connect server, API key, and immuno_api
+
 run the plumber API / test it
+
 publish Plumber api
+
 set vanity url on Plumber API to immuno_api
