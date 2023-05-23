@@ -15,6 +15,10 @@ https://github.com/philbowsher/Workshop-R-Tensorflow-Scientific-Computing/raw/ma
 Live environment with examples:
 https://rstudio.cloud/project/1011147
 
+AI Intro Talk:
+
+https://colorado.posit.co/rsc/AI_Pharma_Open_Source/#/title-slide
+
 Live Presentation is here:
 
 https://colorado.rstudio.com/rsc/WorkshopRDeepLearningSci/workshopTensorflow.html#1
