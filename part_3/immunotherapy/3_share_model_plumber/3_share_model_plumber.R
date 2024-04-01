@@ -19,7 +19,7 @@ library(PepTools)
 # make sure WD is 3 location
 # Click Run API, then test peptide prediction is generated...
 # Then deploy using push button
-# after deplot, set content url to /plumber/
+# after deploy, set content url to /plumber/
 
 con <- config::get(file = "./config.yml")
 if (!all(c("rsc_url", "rsc_api_key") %in% names(con)) &
