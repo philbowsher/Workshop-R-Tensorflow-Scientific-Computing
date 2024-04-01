@@ -1,0 +1,13 @@
+Convert RMD to QMD
+Add Shiny for Python
+Add more Torch
+
+we need to deploy early on - like in rstudio or in vscode
+
+the torch stuff needs to be updated
+
+need a python for shiny example
+
+need to simplify the plumber stuff - like make it step 3 and then consume step 4, its just sorta hangs out there
+
+Add GenAI papers and slides

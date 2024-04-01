@@ -1,0 +1,3 @@
+In VS Code, right-click on your code and choose "Run Current File in Interactive Window"
+
+In settings, set up ctrl-alt-F5 as a keyboard shortcut to this run option
