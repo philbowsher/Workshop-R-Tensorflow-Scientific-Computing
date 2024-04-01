@@ -142,5 +142,6 @@ results %>%
 #   export_savedmodel("saved_models")
 
 # And this is the recommended way
+# make sure WD is set to part 3 immuno folder
 model %>%
   save_model_tf("saved_model")
