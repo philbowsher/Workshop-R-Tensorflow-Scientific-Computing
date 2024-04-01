@@ -145,7 +145,7 @@ Then we can augment the `nn_dat` for plotting:
 plot_dat = nn_dat %>%
   filter(partition == 'test') %>%
   mutate(class_num = factor(class_num),
-         y_pred = factor(predict_classes(model, x_test)),
+  y_pred = factor(as.integer(predict(model, x_test) %>% k_argmax())),
          Correct = factor(ifelse(class_num == y_pred, "Yes", "No")))
 plot_dat %>% select(-contains("feat")) %>% head(3)
 ```
