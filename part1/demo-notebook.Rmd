@@ -17,7 +17,7 @@ library(reticulate)
 # Verify we're using the correct Python
 cat("Python:", py_config()$python, "\n")
 
-readr::write_csv(nycflights13::flights, path = "flights.csv")
+readr::write_csv(nycflights13::flights, "flights.csv")
 cat("✓ Created flights.csv\n")
 ```
 
