@@ -4,9 +4,24 @@ runtime: shiny
 output: html_document
 ---
 
+**HOW TO RUN THIS SHINY APP IN POSITRON:**
+
+Run this command in your R console (from the workshop root directory):
+
+```r
+rmarkdown::run("part1/reticulated-shiny-rmd-py2/index.Rmd")
+```
+
+**Do NOT try to render/knit this file** - it needs to run as a Shiny app server.
+
+---
+
 This uses Python (via reticulate) to generate some data, and Shiny to serve a pretty, interactive plot of it.
 
 ```{r, echo = FALSE}
+# Configure Python for reticulate in Positron
+Sys.setenv(RETICULATE_PYTHON = "/opt/python/3.12.3/bin/python3")
+
 library(shiny)
 library(reticulate)
 
