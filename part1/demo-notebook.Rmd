@@ -44,8 +44,18 @@ cat("✓ Python processed", nrow(py$flights), "rows\n")
 
 ```{r, fig.width=7, fig.height=3}
 library(ggplot2)
-cat("Rows in py$flights:", nrow(py$flights), "\n")
-ggplot(py$flights, aes(carrier, arr_delay)) + geom_point() + geom_jitter()
+library(dplyr)
+
+# Convert pandas dataframe to R dataframe and fix column types
+flights_r <- py$flights %>%
+  as.data.frame() %>%
+  mutate(carrier = as.character(carrier),
+         dep_delay = as.numeric(dep_delay),
+         arr_delay = as.numeric(arr_delay))
+
+cat("Rows in flights:", nrow(flights_r), "\n")
+ggplot(flights_r, aes(carrier, arr_delay)) + geom_point() + geom_jitter()
+
 ```
 
 ***
