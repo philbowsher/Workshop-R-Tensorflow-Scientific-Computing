@@ -1,38 +1,61 @@
 #
-# This is a Plumber API. You can run the API by clicking
-# the 'Run API' button above.
+# This is a Plumber API for predicting peptide binding affinity
+#
+# TO RUN LOCALLY IN POSITRON:
+#   setwd("part_3/immunotherapy/3_share_model_plumber")
+#   plumber::pr_run(plumber::pr("3_share_model_plumber.R"), port = 8000)
+#
+# Then test at: http://127.0.0.1:8000/__docs__/
+# Or: http://127.0.0.1:8000/predict?peptide=LLTDAQRIV
+#
+# TO DEPLOY TO POSIT CONNECT FROM POSITRON:
+#   source("deploy_api.R")
+#
+# TO RUN IN RSTUDIO:
+#   Click the 'Run API' button above
 #
 # Find out more about building APIs with Plumber here:
-#
 #    https://www.rplumber.io/
 #
 
-library(plumber)
-library(config)
-library(reticulate)
-library(PepTools)
-
-# Get pinned model from Posit Connect
-# Make sure config.yml is updated
-# The config is replacing the typical usethis::edit_r_environ()
-# After deployment, be sure to name the API in Posit Connect plumber
-# make sure WD is 3 location
-# Click Run API, then test peptide prediction is generated...
-# Then deploy using push button
-# after deploy, set content url to /plumber/
-
-con <- config::get(file = "./config.yml")
-if (!all(c("rsc_url", "rsc_api_key") %in% names(con)) &
-    !grepl("<", con$rsc_url, fixed = TRUE)) {
-  stop("Set rsc_url and rsc_api_key in config.yml before continuing.")
+# Configure Python for reticulate
+# On Connect, use the managed Python environment (don't set RETICULATE_PYTHON)
+# On Workbench/local, use system Python
+if (Sys.getenv("RSTUDIO_PRODUCT") != "CONNECT") {
+  # Running on Workbench or locally - use system Python
+  Sys.setenv(RETICULATE_PYTHON = "/opt/python/3.12.3/bin/python3")
 }
-con <- pins::board_connect(
-  server = config::get("rsc_url"),
-  key = config::get("rsc_api_key")
-)
-mod_pinned <- pins::pin_get("peptide_model",board = con)
-utils::unzip(mod_pinned[1], exdir = fs::path_dir(mod_pinned[1]))
-mod <- keras::load_model_tf(file.path(fs::path_dir(mod_pinned[1]), "saved_model"))
+
+library(plumber)
+library(reticulate)
+library(keras)
+library(PepTools)
+library(pins)
+
+# ============================================================================
+# SETUP: Before running locally, set environment variables in R console:
+#   Sys.setenv(CONNECT_SERVER = "https://pub.workshop.posit.team")
+#   Sys.setenv(CONNECT_API_KEY = "your-api-key")
+#
+# When deployed to Posit Connect:
+#   1. Deploy this API
+#   2. In Connect UI → Content → Vars → Add environment variables:
+#      - CONNECT_SERVER = https://pub.workshop.posit.team
+#      - CONNECT_API_KEY = your-api-key
+#   3. Set content URL to /plumber/
+# ============================================================================
+
+# Connect to Posit Connect and download pinned model
+con <- pins::board_connect()
+
+# Download the pinned model file
+mod_path <- pins::pin_download(con, "peptide_model")
+
+# Expand path (removes ~ and makes it absolute)
+mod_path <- normalizePath(mod_path, mustWork = TRUE)
+
+# Load the Keras model
+mod <- keras$saving$load_model(mod_path)
 
 #* @apiTitle Immunotherapy
 
@@ -43,23 +66,30 @@ function(peptide){
   # Peptide classes for prediction
   peptide_classes <- c("NB", "WB", "SB")
 
-  # split on commas and remove white space
+  # Split on commas and remove white space
   peptide <- trimws(strsplit(peptide, ",")[[1]])
 
-  # transform input into flattened array
-  x_val <- peptide %>%
-    pep_encode() %>%
-    array_reshape(dim = c(nrow(.), 9*20))
+  # Transform input into flattened array
+  encoded <- peptide %>% pep_encode()
+  x_val <- array_reshape(encoded, c(as.integer(nrow(encoded)), 180L))
 
-  # Get predictions from models
-  preds <- mod %>%
-    predict(x_val) %>% keras::k_argmax()
-  
- #  browser()
+  # Get predictions from model (use Python method)
+  predictions <- mod$predict(x_val, verbose = 0L)
+  preds <- apply(predictions, 1, which.max) - 1  # Get class with highest probability (0-indexed)
 
   # Return original peptides with predictions
   tibble::tibble(
     peptide = peptide,
-    peptide_classes = peptide_classes[as.integer(preds)]
+    predicted_class = peptide_classes[preds + 1]  # Convert 0-indexed to 1-indexed for R
   )
 }
+
+# ============================================================================
+# Run the API (for Positron) - RUN THESE COMMANDS IN CONSOLE:
+# ============================================================================
+#   setwd("part_3/immunotherapy/3_share_model_plumber")
+#   source("3_share_model_plumber.R")
+#   plumber::pr_run(plumber::pr("3_share_model_plumber.R"), port = 8000)
+#
+# Then open: http://127.0.0.1:8000/__docs__/
+# ============================================================================
