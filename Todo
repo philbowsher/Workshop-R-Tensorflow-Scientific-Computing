@@ -11,3 +11,26 @@ need a python for shiny example
 need to simplify the plumber stuff - like make it step 3 and then consume step 4, its just sorta hangs out there
 
 Add GenAI papers and slides
+
+# Post-Workshop Cleanup & Testing
+- Test part 5 vetiver deployments (both Keras and Torch versions)
+- Add workshop slides back to readme
+- Backup data
+- Update requirements.txt in subdirectories (still have old TF 2.4.1)
+- Test full workshop flow in fresh Positron session (end-to-end validation)
+
+# Infrastructure & Config
+- Add .gitignore for .Rprofile, HTML outputs, flights.csv, ideas/, part_4_torch.zip
+- Add example .Rprofile template for workshop participants
+- Document workshop setup (CONNECT_SERVER, CONNECT_API_KEY, WORKSHOP_USER_ID)
+
+# Documentation
+- Document workshop_setup.R usage in main README
+- Add troubleshooting guide (Python/TensorFlow version issues, pin conflicts, etc.)
+- Document deployment approach differences (manual plumber vs torch vs vetiver)
+- Add comparison table: when to use manual vs vetiver deployment
+
+# Future Enhancements
+- Add cleanup scripts for workshop environment (remove old pins, deployments)
+- Document memory/resource requirements (torch vs tensorflow)
+- Add monitoring/observability examples (API metrics, model performance tracking)
