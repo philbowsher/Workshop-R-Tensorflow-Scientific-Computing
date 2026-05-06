@@ -10,6 +10,7 @@
 # ============================================================================
 
 library(rsconnect)
+library(httr)
 
 # Configuration
 server_url <- Sys.getenv("CONNECT_SERVER", "https://pub.workshop.posit.team")
@@ -23,17 +24,31 @@ if (api_key == "") {
 cat("Deploying Plumber API (Torch) to Posit Connect...\n")
 cat("Server:", server_url, "\n\n")
 
-# Use the server name "workshop_connect" that was registered earlier
+# Get Connect username from API
+connect_user <- httr::GET(
+  paste0(server_url, "/__api__/v1/user"),
+  httr::add_headers(Authorization = paste("Key", api_key))
+) |> httr::content()
+
+cat("Authenticated as Connect user\n")
+
+# Use the server name "workshop_connect"
 server_name <- "workshop_connect"
+
+# Register server if not already registered
+servers <- rsconnect::servers()
+if (!server_name %in% servers$name) {
+  cat("Registering Connect server...\n")
+  rsconnect::addServer(url = server_url, name = server_name)
+}
 
 # Check if account is already registered
 accounts <- rsconnect::accounts(server = server_name)
 
 if (nrow(accounts) == 0) {
-  cat("Registering Connect account with API key...\n")
-  # Register the account with API key authentication
+  cat("Registering Connect account...\n")
   rsconnect::connectApiUser(
-    account = "workshop_user",
+    account = connect_user$username,
     server = server_name,
     apiKey = api_key
   )
@@ -63,31 +78,29 @@ deployment <- rsconnect::deployApp(
   appTitle = "Peptide Prediction API (Torch)",
   appFiles = c("plumber.R"),
   server = server_name,
-  account = accounts$name[1]
+  account = accounts$name[1],
+  forceUpdate = TRUE
 )
 
 cat("\n✓ Deployment complete!\n\n")
 
-# Get deployment info
-if (is.character(deployment)) {
-  # deployment is just a URL string
-  api_url <- deployment
-} else if (!is.null(deployment$appUrl)) {
-  # deployment is an object with appUrl
-  api_url <- deployment$appUrl
+# Get deployment info from rsconnect records
+deployments <- rsconnect::deployments(".")
+if (nrow(deployments) > 0) {
+  api_url <- deployments$url[1]
+
+  # Extract content GUID from URL for 4_consume_api.R
+  guid <- sub(".*/content/([^/]+).*", "\\1", api_url)
+  content_url <- paste0("content/", guid)
+
+  cat("API URL:", api_url, "\n")
+  cat("Interactive docs:", file.path(api_url, "__docs__"), "\n")
+  cat("Test endpoint:", file.path(api_url, "predict?peptide=LLTDAQRIV"), "\n\n")
+
+  cat("For file 4 (consume API), the content URL has been auto-detected.\n")
+  cat("If needed, manually set:\n")
+  cat("  Sys.setenv(CONNECT_CONTENT_URL = '", content_url, "')\n", sep = "")
 } else {
-  # Fallback - get from rsconnect records
-  deployments <- rsconnect::deployments(".")
-  if (nrow(deployments) > 0) {
-    api_url <- deployments$url[1]
-  } else {
-    api_url <- "https://pub.workshop.posit.team/plumber_torch/"
-  }
+  cat("Could not retrieve deployment URL from records.\n")
+  cat("Check Connect UI for the deployed API URL.\n")
 }
-
-cat("API URL:", api_url, "\n")
-cat("Interactive docs:", file.path(api_url, "__docs__"), "\n")
-cat("Test endpoint:", file.path(api_url, "predict?peptide=LLTDAQRIV"), "\n\n")
-
-cat("For file 4 (consume API), set environment variable:\n")
-cat("  Sys.setenv(CONNECT_CONTENT_URL = 'plumber_torch')\n")

@@ -23,34 +23,45 @@
 
 library(httr)
 library(purrr)
+library(rsconnect)
 
 # Configuration from environment variables
 rsc_url <- Sys.getenv("CONNECT_SERVER", "https://pub.workshop.posit.team")
 rsc_api_key <- Sys.getenv("CONNECT_API_KEY")
-content_url <- Sys.getenv("CONNECT_CONTENT_URL")
 
 # ============================================================================
 # IMPORTANT: Set these environment variables BEFORE running this file:
 # ============================================================================
 #   Sys.setenv(CONNECT_SERVER = "https://pub.workshop.posit.team")
 #   Sys.setenv(CONNECT_API_KEY = "your-api-key-here")
-#   Sys.setenv(CONNECT_CONTENT_URL = "plumber_torch")
 # ============================================================================
 
-# Validate configuration
-if (content_url == "") {
-  stop("\n*** SET ENVIRONMENT VARIABLES FIRST ***\n\n",
-       "Run these commands before running this file:\n\n",
-       "  Sys.setenv(CONNECT_SERVER = 'https://pub.workshop.posit.team')\n",
-       "  Sys.setenv(CONNECT_API_KEY = 'your-api-key')\n",
-       "  Sys.setenv(CONNECT_CONTENT_URL = 'plumber_torch')\n\n",
-       "Then run this file again.")
-}
-
+# Validate API key
 if (rsc_api_key == "") {
   stop("\n*** SET CONNECT_API_KEY FIRST ***\n\n",
        "  Sys.setenv(CONNECT_API_KEY = 'your-api-key')\n\n",
        "Get your API key from: https://pub.workshop.posit.team → Your name → API Keys → New")
+}
+
+# Auto-detect content URL from deployment records
+plumber_dir <- file.path(dirname(getwd()), "3_share_model_plumber")
+if (dir.exists(plumber_dir)) {
+  deployments <- rsconnect::deployments(plumber_dir)
+  if (nrow(deployments) > 0) {
+    guid <- sub(".*/content/([^/]+).*", "\\1", deployments$url[1])
+    content_url <- paste0("content/", guid)
+    cat("✓ Auto-detected content URL:", content_url, "\n\n")
+  } else {
+    stop("No deployment records found. Deploy the API first with deploy_api.R")
+  }
+} else {
+  # Fallback to environment variable
+  content_url <- Sys.getenv("CONNECT_CONTENT_URL")
+  if (content_url == "") {
+    stop("\n*** COULD NOT AUTO-DETECT CONTENT URL ***\n\n",
+         "Either run from part_4_torch/part3/immunotherapy/ directory or set manually:\n",
+         "  Sys.setenv(CONNECT_CONTENT_URL = 'content/your-guid-here')\n")
+  }
 }
 
 # Function to predict peptide class via API

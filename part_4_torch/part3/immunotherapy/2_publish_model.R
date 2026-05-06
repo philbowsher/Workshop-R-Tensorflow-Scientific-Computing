@@ -11,6 +11,7 @@
 # ============================================================================
 
 library(pins)
+library(httr)
 
 cat("=======================================================================\n")
 cat("PUBLISHING TORCH MODEL TO POSIT CONNECT\n")
@@ -46,7 +47,24 @@ cat("\n2. Connecting to Posit Connect...\n")
 cat("----------------------------------\n")
 
 con <- pins::board_connect()
-cat("✓ Connected to board\n")
+
+# Get Connect username for authentication
+connect_user <- httr::GET(
+  paste0(server_url, "/__api__/v1/user"),
+  httr::add_headers(Authorization = paste("Key", api_key))
+) |> httr::content()
+
+# Generate or retrieve anonymous workshop ID (no private info exposed)
+workshop_id <- Sys.getenv("WORKSHOP_USER_ID")
+if (workshop_id == "") {
+  hash_val <- sum(utf8ToInt(connect_user$username)) %% 999999
+  workshop_id <- sprintf("user%06d", hash_val)
+  Sys.setenv(WORKSHOP_USER_ID = workshop_id)
+  cat("✓ Generated workshop ID:", workshop_id, "\n")
+  cat("  (Anonymous - no personal info)\n\n")
+} else {
+  cat("✓ Using workshop ID:", workshop_id, "\n\n")
+}
 
 # ============================================================================
 # 3. Pin the model
@@ -65,39 +83,24 @@ if (!file.exists(model_path)) {
 cat("Model file:", model_path, "\n")
 cat("File size:", file.size(model_path), "bytes\n")
 
-# Upload the model to Connect
+# Upload the model with anonymous identifier
+pin_name <- paste0(connect_user$username, "/peptide_model_torch_", workshop_id)
+
 pins::pin_upload(
   board = con,
   paths = model_path,
-  name = "peptide_model_torch",
-  title = "Peptide Binding Prediction Model (Torch)",
+  name = pin_name,
+  title = paste0("Torch Model - ", workshop_id),
   description = "Neural network model for predicting peptide-MHC binding affinity (Torch format)",
   type = "rds"
 )
 
 cat("\n✓ Model pinned successfully!\n")
-
-# ============================================================================
-# 4. Verify the pin
-# ============================================================================
-
-cat("\n4. Verifying pin...\n")
-cat("--------------------\n")
-
-# List pins to verify
-pins_list <- pins::pin_list(con)
-if ("peptide_model_torch" %in% pins_list) {
-  cat("✓ Pin 'peptide_model_torch' is available\n")
-
-  # Get pin metadata
-  meta <- pins::pin_meta(con, "peptide_model_torch")
-  cat("Pin title:", meta$title, "\n")
-  cat("Pin created:", meta$created, "\n")
-} else {
-  cat("⚠ Pin 'peptide_model_torch' not found in list\n")
-}
+cat("  Your workshop ID:", workshop_id, "\n")
+cat("  Pin name:", pin_name, "\n")
 
 cat("\n=======================================================================\n")
 cat("✓ Model published to Connect!\n")
+cat("  Your API will automatically use this pin.\n")
 cat("  Next step: Run deploy_api.R to deploy the Plumber API\n")
 cat("=======================================================================\n")

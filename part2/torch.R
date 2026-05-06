@@ -1,8 +1,7 @@
 # https://mlverse.github.io/torch/articles/examples/basic-nn-module.html
 
-Sys.setenv(TORCH_HOME="~/torch")
-torch::install_torch(path = "~/torch")
-
+# Configure Python for reticulate (if needed)
+Sys.setenv(RETICULATE_PYTHON = "/opt/python/3.12.3/bin/python3")
 
 library(torch)
 

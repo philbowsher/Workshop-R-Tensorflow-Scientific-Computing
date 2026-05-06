@@ -20,7 +20,10 @@ devtools::install_github("leonjessen/PepTools")
 
 ## Analysis
 
-```{r}
+```{r setup}
+# Configure Python for reticulate/keras in Positron
+Sys.setenv(RETICULATE_PYTHON = "/opt/python/3.12.3/bin/python3")
+
 library(keras)
 library(tidyverse)
 library(PepTools)

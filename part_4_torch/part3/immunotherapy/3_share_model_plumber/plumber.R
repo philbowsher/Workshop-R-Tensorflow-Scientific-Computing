@@ -33,6 +33,7 @@ library(plumber)
 library(torch)
 library(PepTools)
 library(pins)
+library(httr)
 
 # ============================================================================
 # SETUP: Before running locally, set environment variables in R console:
@@ -50,8 +51,24 @@ library(pins)
 # Connect to Posit Connect and download pinned model
 con <- pins::board_connect()
 
+# Get Connect username for authentication
+connect_user <- httr::GET(
+  paste0(Sys.getenv("CONNECT_SERVER"), "/__api__/v1/user"),
+  httr::add_headers(Authorization = paste("Key", Sys.getenv("CONNECT_API_KEY")))
+) |> httr::content()
+
+# Get workshop ID (anonymous identifier)
+workshop_id <- Sys.getenv("WORKSHOP_USER_ID")
+if (workshop_id == "") {
+  hash_val <- sum(utf8ToInt(connect_user$username)) %% 999999
+  workshop_id <- sprintf("user%06d", hash_val)
+}
+
+# Construct pin name
+pin_name <- paste0(connect_user$username, "/peptide_model_torch_", workshop_id)
+
 # Download the pinned torch model file
-mod_path <- pins::pin_download(con, "peptide_model_torch")
+mod_path <- pins::pin_download(con, pin_name)
 
 # Expand path (removes ~ and makes it absolute)
 mod_path <- normalizePath(mod_path, mustWork = TRUE)
