@@ -9,31 +9,53 @@ output: html_notebook
 ### Setup
 
 ```{r setup}
+# Configure Python for reticulate BEFORE loading the package
+Sys.setenv(RETICULATE_PYTHON = "/opt/python/3.12.3/bin/python3")
+
 library(reticulate)
-# use_python("/usr/local/bin/python")
-readr::write_csv(nycflights13::flights,path = "flights.csv")
+
+# Verify we're using the correct Python
+cat("Python:", py_config()$python, "\n")
+
+readr::write_csv(nycflights13::flights, "flights.csv")
+cat("✓ Created flights.csv\n")
 ```
 
 ***
 
 # From Python to R
 
-
 ### Use Python to manipulate data
 
-```{python}
+```{r}
+# Run Python code through reticulate
+py_run_string("
 import pandas
-flights = pandas.read_csv("flights.csv")
-flights = flights[flights['dest'] == "ORD"]
+flights = pandas.read_csv('flights.csv')
+flights = flights[flights['dest'] == 'ORD']
 flights = flights[['carrier', 'dep_delay', 'arr_delay']]
 flights = flights.dropna()
+")
+
+cat("✓ Python processed", nrow(py$flights), "rows\n")
 ```
 
 ### Use R to visualize Pandas DataFrame
 
 ```{r, fig.width=7, fig.height=3}
 library(ggplot2)
-ggplot(py$flights, aes(carrier, arr_delay)) + geom_point() + geom_jitter()
+library(dplyr)
+
+# Convert pandas dataframe to R dataframe and fix column types
+flights_r <- py$flights %>%
+  as.data.frame() %>%
+  mutate(carrier = as.character(carrier),
+         dep_delay = as.numeric(dep_delay),
+         arr_delay = as.numeric(arr_delay))
+
+cat("Rows in flights:", nrow(flights_r), "\n")
+ggplot(flights_r, aes(carrier, arr_delay)) + geom_point() + geom_jitter()
+
 ```
 
 ***
@@ -48,15 +70,22 @@ flights <- read_csv("flights.csv") %>%
   filter(dest == "ORD") %>%
   select(carrier, dep_delay, arr_delay) %>%
   na.omit()
+cat("✓ R processed", nrow(flights), "rows\n")
 ```
 
 ### Use Python to print R dataframe
 
-```{python}
-print (r.flights.head(10))
+```{r}
+# Access R's flights variable from Python
+py_run_string("
+import pandas as pd
+print('✓ Python can access R data:')
+print(r.flights.head(10))
+")
 ```
 
 ***
 
 See the [reticulate website](https://rstudio.github.io/reticulate/index.html) for details.
 
+**Note:** This notebook uses `py_run_string()` to run Python code through reticulate, ensuring R and Python share the same session. This allows chunk-by-chunk execution in Positron.

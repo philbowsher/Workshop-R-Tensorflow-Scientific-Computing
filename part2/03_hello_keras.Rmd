@@ -4,6 +4,9 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
+# Configure Python for reticulate/keras in Positron
+Sys.setenv(RETICULATE_PYTHON = "/opt/python/3.12.3/bin/python3")
+
 knitr::opts_chunk$set(echo = TRUE)
 set.seed(265509)
 ```
@@ -73,43 +76,51 @@ x_train = nn_dat %>%
   filter(partition == 'train') %>%
   select(contains("feat")) %>%
   as.matrix
-y_train = nn_dat %>%
+
+# Convert labels to one-hot encoded format
+y_train_labels = nn_dat %>%
   filter(partition == 'train') %>%
-  pull(class_num) %>%
-  to_categorical(3)
+  pull(class_num)
+y_train = keras$utils$to_categorical(y_train_labels, num_classes = 3L)
 
 x_test = nn_dat %>%
   filter(partition == 'test') %>%
   select(contains("feat")) %>%
   as.matrix
-y_test = nn_dat %>%
+
+# Convert labels to one-hot encoded format
+y_test_labels = nn_dat %>%
   filter(partition == 'test') %>%
-  pull(class_num) %>%
-  to_categorical(3)
+  pull(class_num)
+y_test = keras$utils$to_categorical(y_test_labels, num_classes = 3L)
 ```
 
 ### 2. Define model
 
 Set architecture (See the green ANN visualisation)
 ```{r set_architecture}
-model = keras_model_sequential() %>% 
-  layer_dense(units = 4, activation = 'relu', input_shape = 4) %>% 
-  layer_dense(units = 3, activation = 'softmax')
+# Build model using list syntax (compatible with newer Keras)
+model <- keras_model_sequential(
+  list(
+    layer_dense(units = 4, activation = 'relu', input_shape = c(4)),
+    layer_dense(units = 3, activation = 'softmax')
+  )
+)
 ```
 
 Compile model
 ```{r compile_model}
-model %>%
-  compile(loss = 'categorical_crossentropy',
-          optimizer = optimizer_rmsprop(),
-          metrics = c('accuracy')
+# Use Python method directly (compatible with newer Keras)
+model$compile(
+  loss = 'categorical_crossentropy',
+  optimizer = optimizer_rmsprop(),
+  metrics = list('accuracy')
 )
 ```
 
 We can get a summary of the model like so:
 ```{r see_model_summary}
-model %>%
-  summary
+model$summary()
 ```
 
 As expected we see 35 trainable parameters.
@@ -118,44 +129,70 @@ As expected we see 35 trainable parameters.
 
 Lastly we fit the model and save the training progres in the `history` object:
 ```{r fit_model}
-history = model %>%
-  fit(x = x_train,
-      y = y_train,
-      epochs = 200,
-      batch_size = 20,
-      validation_split = 0
+# Fit the model
+history <- model$fit(
+  x = x_train,
+  y = y_train,
+  epochs = 200L,
+  batch_size = 20L,
+  validation_split = 0,
+  verbose = 1
 )
 ```
 
 Once the model is trained, we can inspect the training process
 ```{r see_training, fig.align="center", fig.width=10, fig.height=3}
-plot(history)
+# Extract history data and plot
+history_df <- data.frame(
+  epoch = 1:length(history$history$loss),
+  loss = unlist(history$history$loss),
+  accuracy = unlist(history$history$accuracy)
+)
+
+library(tidyr)
+history_df %>%
+  pivot_longer(cols = c(loss, accuracy), names_to = "metric", values_to = "value") %>%
+  ggplot(aes(x = epoch, y = value, color = metric)) +
+  geom_line() +
+  facet_wrap(~metric, scales = "free_y") +
+  theme_bw() +
+  labs(title = "Training History", x = "Epoch", y = "Value")
 ```
 
 ### Evaluate Network Performance
 
 The final performance can be obtained like so:
 ```{r get_performance}
-perf = model %>% evaluate(x_test, y_test)
+# Use Python method directly
+perf <- model$evaluate(x_test, y_test, verbose = 0)
+names(perf) <- c('loss', 'accuracy')
 perf
 ```
 
 Then we can augment the `nn_dat` for plotting:
 ```{r mk_plot_dat}
-plot_dat = nn_dat %>%
+# Get predictions
+predictions <- model$predict(x_test, verbose = 0)
+y_pred <- apply(predictions, 1, which.max) - 1  # Get class with highest probability
+
+plot_dat <- nn_dat %>%
   filter(partition == 'test') %>%
-  mutate(class_num = factor(class_num),
-  y_pred = factor(as.integer(predict(model, x_test) %>% k_argmax())),
-         Correct = factor(ifelse(class_num == y_pred, "Yes", "No")))
+  mutate(
+    class_num = factor(class_num, levels = c(0, 1, 2)),
+    y_pred = factor(y_pred, levels = c(0, 1, 2)),
+    Correct = factor(ifelse(as.numeric(as.character(class_num)) == as.numeric(as.character(y_pred)), "Yes", "No"))
+  )
+
 plot_dat %>% select(-contains("feat")) %>% head(3)
 ```
 
 and lastly, we can visualise the confusion matrix like so:
 ```{r conf_mat_vis, fig.align="center", fig.width=10, fig.height=3, echo=FALSE}
-title     = "Classification Performance of Artificial Neural Network"
-sub_title = str_c("Accuracy = ", round(perf["acc"], 3) * 100, "%")
-x_lab     = "True iris class"
-y_lab     = "Predicted iris class"
+title     <- "Classification Performance of Artificial Neural Network"
+sub_title <- str_c("Accuracy = ", round(perf['accuracy'], 3) * 100, "%")
+x_lab     <- "True iris class"
+y_lab     <- "Predicted iris class"
+
 plot_dat %>% ggplot(aes(x = class_num, y = y_pred, colour = Correct)) +
   geom_jitter() +
   scale_x_discrete(labels = levels(nn_dat$class_label)) +
@@ -165,4 +202,4 @@ plot_dat %>% ggplot(aes(x = class_num, y = y_pred, colour = Correct)) +
 ```
 
 ### Conclusion
-Here, we created a 3-class predictor with an accuracy of `r round(perf$acc,3)*100`% on a left out data partition. I hope, this illustrates how relatively simple it is to get started with `Keras`.
+Here, we created a 3-class predictor with `r round(perf['accuracy'],3)*100`% accuracy on a left out data partition. I hope, this illustrates how relatively simple it is to get started with `Keras`.

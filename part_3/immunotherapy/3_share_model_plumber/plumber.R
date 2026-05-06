@@ -1,9 +1,13 @@
 #
 # This is a Plumber API for predicting peptide binding affinity
 #
+# NOTE: This file (plumber.R) is the CURRENT version.
+#       The old file 3_share_model_plumber.R is deprecated and can be deleted.
+#       Posit Connect requires the API file to be named "plumber.R"
+#
 # TO RUN LOCALLY IN POSITRON:
 #   setwd("part_3/immunotherapy/3_share_model_plumber")
-#   plumber::pr_run(plumber::pr("3_share_model_plumber.R"), port = 8000)
+#   plumber::pr_run(plumber::pr("plumber.R"), port = 8000)
 #
 # Then test at: http://127.0.0.1:8000/__docs__/
 # Or: http://127.0.0.1:8000/predict?peptide=LLTDAQRIV
@@ -88,8 +92,8 @@ function(peptide){
 # Run the API (for Positron) - RUN THESE COMMANDS IN CONSOLE:
 # ============================================================================
 #   setwd("part_3/immunotherapy/3_share_model_plumber")
-#   source("3_share_model_plumber.R")
-#   plumber::pr_run(plumber::pr("3_share_model_plumber.R"), port = 8000)
+#   source("plumber.R")
+#   plumber::pr_run(plumber::pr("plumber.R"), port = 8000)
 #
 # Then open: http://127.0.0.1:8000/__docs__/
 # ============================================================================
