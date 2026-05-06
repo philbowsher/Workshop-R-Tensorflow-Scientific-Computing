@@ -16,8 +16,8 @@ Add GenAI papers and slides
 - Test part 5 vetiver deployments (both Keras and Torch versions)
 - Add workshop slides back to readme
 - Backup data
-- Update requirements.txt in subdirectories (still have old TF 2.4.1)
 - Test full workshop flow in fresh Positron session (end-to-end validation)
+- Update old package versions in part1 demos (numpy 1.15, matplotlib 2.2, pandas 0.23)
 
 # Infrastructure & Config
 - Add .gitignore for .Rprofile, HTML outputs, flights.csv, ideas/, part_4_torch.zip
